@@ -204,7 +204,7 @@ export default function HomePage() {
       default:
         return (
           <div className="text-center transition-all duration-300">
-            <h1 className="text-4xl font-bold text-gray-800">BoardLink 🔗</h1>
+            <h1 className="text-4xl font-bold text-gray-800">File2U 🔗</h1>
             <p className="mt-2 text-lg text-gray-500">Share files to the smart board instantly.</p>
             <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
               <button onClick={() => setView('send')} className="group flex flex-col items-center justify-center w-full bg-indigo-50 text-indigo-700 font-bold py-8 px-4 rounded-xl hover:bg-indigo-100 transition-all duration-300 transform hover:scale-105">
