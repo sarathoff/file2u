@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { Readable } from 'stream';
+import { getAuthenticatedClient } from '@/lib/google';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -19,15 +20,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No file was uploaded.' }, { status: 400 });
     }
 
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      'https://developers.google.com/oauthplayground'
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
-    });
+    const oauth2Client = await getAuthenticatedClient();
 
     const drive = google.drive({
       version: 'v3',
