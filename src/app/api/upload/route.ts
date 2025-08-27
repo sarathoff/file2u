@@ -1,16 +1,14 @@
+// src/app/api/upload/route.ts
 import { google } from 'googleapis';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { Readable } from 'stream';
-import { getAuthenticatedClient } from '@/lib/google';
 
-// Initialize Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Main API handler for POST requests
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -20,12 +18,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No file was uploaded.' }, { status: 400 });
     }
 
-    const oauth2Client = await getAuthenticatedClient();
-
-    const drive = google.drive({
-      version: 'v3',
-      auth: oauth2Client,
+    // --- NEW: Authenticate using the Service Account ---
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Vercel might escape newlines
+      },
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
     });
+
+    const drive = google.drive({ version: 'v3', auth });
+    // --- End of new authentication ---
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const stream = Readable.from(buffer);
@@ -52,23 +55,17 @@ export async function POST(req: Request) {
 
     const { data, error: supabaseError } = await supabase
       .from('shared_files')
-      .insert({
-        share_code: shareCode,
-        file_url: driveLink,
-      })
+      .insert({ share_code: shareCode, file_url: driveLink })
       .select()
       .single();
 
-    if (supabaseError) {
-      throw supabaseError;
-    }
+    if (supabaseError) throw supabaseError;
 
     return NextResponse.json({
       message: 'File uploaded successfully!',
       shareCode: data.share_code,
       driveLink: data.file_url,
     });
-
   } catch (error: any) {
     console.error('Upload failed:', error.message);
     return NextResponse.json({ error: 'An error occurred during the upload process.', details: error.message }, { status: 500 });
