@@ -110,23 +110,23 @@ export default function HomePage() {
     switch (view) {
       case 'send':
         return (
-          <Card>
+          <Card className="w-full max-w-md bg-white/80 backdrop-blur-lg border-gray-200/80 shadow-lg rounded-2xl transition-all duration-500 ease-in-out fade-in">
             <CardHeader>
-              <Button variant="ghost" size="sm" className="self-start" onClick={resetSend}>
+              <Button variant="ghost" size="sm" className="absolute top-4 left-4 text-gray-500 hover:text-gray-900" onClick={resetSend}>
                 <Icons.arrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <CardTitle>Send File</CardTitle>
-              <CardDescription>Upload a file to generate a shareable code.</CardDescription>
+              <CardTitle className="text-center text-2xl font-semibold text-gray-900 pt-8">Send File</CardTitle>
+              <CardDescription className="text-center text-gray-500">Upload a file to get a shareable code.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {sendResult ? (
-                <div className="text-center">
+                <div className="text-center fade-in p-4">
                   <Icons.checkCircle className="mx-auto h-12 w-12 text-green-500" />
-                  <h3 className="mt-4 text-lg font-medium">Upload Successful!</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">Your share code is:</p>
-                  <div className="my-4 text-4xl font-bold tracking-widest text-primary">{sendResult.shareCode}</div>
-                  <Button onClick={resetSend}>Send another file</Button>
+                  <h3 className="mt-4 text-xl font-medium text-gray-900">Upload Successful</h3>
+                  <p className="mt-2 text-sm text-gray-500">Your share code is:</p>
+                  <div className="my-4 text-5xl font-bold tracking-widest text-gray-800">{sendResult.shareCode}</div>
+                  <Button onClick={resetSend} className="w-full mt-4" variant="outline">Send another file</Button>
                 </div>
               ) : (
                 <form onSubmit={handleSendSubmit} className="space-y-4">
@@ -136,23 +136,23 @@ export default function HomePage() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     className={cn(
-                      'flex justify-center rounded-lg border-2 border-dashed border-muted bg-background px-6 py-10',
-                      isDragging && 'border-primary bg-accent'
+                      'flex justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-6 py-10 transition-colors',
+                      isDragging && 'border-blue-500 bg-blue-50'
                     )}
                   >
                     <div className="text-center">
-                      <Icons.upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                      <div className="mt-4 flex text-sm leading-6 text-muted-foreground">
+                      <Icons.upload className="mx-auto h-10 w-10 text-gray-400" />
+                      <div className="mt-4 flex text-sm leading-6 text-gray-600">
                         <Label
                           htmlFor="file-upload"
-                          className="relative cursor-pointer rounded-md font-semibold text-primary focus-within:outline-none focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 hover:text-primary/80"
+                          className="relative cursor-pointer rounded-md font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500"
                         >
                           <span>Click to upload</span>
                           <Input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} />
                         </Label>
                         <p className="pl-1">or drag and drop</p>
                       </div>
-                      {file && <p className="text-xs leading-5 text-muted-foreground">{file.name}</p>}
+                      {file && <p className="text-xs leading-5 text-gray-500 mt-2">{file.name}</p>}
                     </div>
                   </div>
                   <Button type="submit" className="w-full" disabled={isSending || !file}>
@@ -160,7 +160,7 @@ export default function HomePage() {
                     {isSending ? 'Uploading...' : 'Get Share Code'}
                   </Button>
                   {sendError && (
-                    <p className="flex items-center text-sm text-destructive">
+                    <p className="flex items-center text-sm text-red-600">
                       <Icons.alertCircle className="mr-2 h-4 w-4" />
                       {sendError}
                     </p>
@@ -172,28 +172,28 @@ export default function HomePage() {
         );
       case 'receive':
         return (
-          <Card>
+          <Card className="w-full max-w-md bg-white/80 backdrop-blur-lg border-gray-200/80 shadow-lg rounded-2xl transition-all duration-500 ease-in-out fade-in">
             <CardHeader>
-              <Button variant="ghost" size="sm" className="self-start" onClick={resetReceive}>
+              <Button variant="ghost" size="sm" className="absolute top-4 left-4 text-gray-500 hover:text-gray-900" onClick={resetReceive}>
                 <Icons.arrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <CardTitle>Receive File</CardTitle>
-              <CardDescription>Enter the 3-digit code to download the file.</CardDescription>
+              <CardTitle className="text-center text-2xl font-semibold text-gray-900 pt-8">Receive File</CardTitle>
+              <CardDescription className="text-center text-gray-500">Enter the 3-digit code to download.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               {receiveResult ? (
-                <div className="text-center">
+                <div className="text-center fade-in p-4">
                   <Icons.checkCircle className="mx-auto h-12 w-12 text-green-500" />
-                  <h3 className="mt-4 text-lg font-medium">File Found!</h3>
+                  <h3 className="mt-4 text-xl font-medium text-gray-900">File Ready to Download</h3>
                   <a
                     href={receiveResult.file_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={cn(buttonVariants({ variant: 'default' }), 'mt-4 w-full')}
+                    className={cn(buttonVariants({ variant: 'default' }), 'mt-6 w-full')}
                   >
-                    <Icons.link className="mr-2 h-4 w-4" />
-                    Open File in New Tab
+                    <Icons.download className="mr-2 h-4 w-4" />
+                    Download File
                   </a>
                   <Button variant="outline" className="mt-2 w-full" onClick={resetReceive}>
                     Receive another file
@@ -207,7 +207,7 @@ export default function HomePage() {
                     onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
                     placeholder="123"
                     maxLength={3}
-                    className="text-center text-2xl tracking-widest"
+                    className="text-center text-4xl tracking-[1em] font-semibold h-20"
                     disabled={isReceiving}
                   />
                   <Button type="submit" className="w-full" disabled={isReceiving || code.length < 3}>
@@ -215,7 +215,7 @@ export default function HomePage() {
                     {isReceiving ? 'Searching...' : 'Get File'}
                   </Button>
                   {receiveError && (
-                    <p className="flex items-center text-sm text-destructive">
+                    <p className="flex items-center text-sm text-red-600">
                       <Icons.alertCircle className="mr-2 h-4 w-4" />
                       {receiveError}
                     </p>
@@ -227,15 +227,24 @@ export default function HomePage() {
         );
       default:
         return (
-          <div className="text-center">
-            <h1 className="text-4xl font-bold">File2U 🔗</h1>
-            <p className="mt-2 text-muted-foreground">Share files to the smart board instantly.</p>
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Button size="lg" onClick={() => setView('send')}>
+          <div className="text-center fade-in">
+            <h1 className="text-5xl font-bold text-gray-800">File2U</h1>
+            <p className="mt-2 text-lg text-gray-600">Share files to the smart board instantly.</p>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                onClick={() => setView('send')}
+                className="transform transition-transform hover:scale-105"
+              >
                 <Icons.upload className="mr-2 h-5 w-5" />
                 Send File
               </Button>
-              <Button size="lg" onClick={() => setView('receive')}>
+              <Button
+                size="lg"
+                onClick={() => setView('receive')}
+                className="transform transition-transform hover:scale-105"
+                variant="secondary"
+              >
                 <Icons.download className="mr-2 h-5 w-5" />
                 Receive File
               </Button>
@@ -246,9 +255,9 @@ export default function HomePage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+    <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-md">{renderView()}</div>
-      <footer className="mt-8 text-center text-sm text-muted-foreground">
+      <footer className="absolute bottom-8 text-center text-sm text-gray-400">
         <p>&copy; {new Date().getFullYear()} file2U. All Rights Reserved.</p>
       </footer>
     </main>
