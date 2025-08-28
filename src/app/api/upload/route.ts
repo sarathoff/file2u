@@ -1,4 +1,3 @@
-// src/app/api/upload/route.ts
 import { google } from 'googleapis';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
@@ -18,18 +17,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No file was uploaded.' }, { status: 400 });
     }
 
-    // --- NEW: Authenticate using the Service Account ---
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Vercel might escape newlines
-      },
-      scopes: ['https://www.googleapis.com/auth/drive.file'],
+    // --- Authenticate using OAuth2 Refresh Token ---
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      'https://developers.google.com/oauthplayground'
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
     });
+    // --- End of authentication ---
 
-    const drive = google.drive({ version: 'v3', auth });
-    // --- End of new authentication ---
-
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
     const buffer = Buffer.from(await file.arrayBuffer());
     const stream = Readable.from(buffer);
 
@@ -46,28 +46,21 @@ export async function POST(req: Request) {
     });
 
     const driveLink = response.data.webViewLink;
-
     if (!driveLink) {
-      throw new Error('File uploaded to Drive, but no link was returned.');
+      throw new Error('File uploaded, but no link was returned.');
     }
 
     const shareCode = Math.floor(100 + Math.random() * 900);
-
-    const { data, error: supabaseError } = await supabase
+    const { data, error } = await supabase
       .from('shared_files')
       .insert({ share_code: shareCode, file_url: driveLink })
-      .select()
-      .single();
+      .select().single();
 
-    if (supabaseError) throw supabaseError;
+    if (error) throw error;
+    return NextResponse.json({ shareCode: data.share_code, driveLink: data.file_url });
 
-    return NextResponse.json({
-      message: 'File uploaded successfully!',
-      shareCode: data.share_code,
-      driveLink: data.file_url,
-    });
   } catch (error: any) {
     console.error('Upload failed:', error.message);
-    return NextResponse.json({ error: 'An error occurred during the upload process.', details: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Upload process failed.', details: error.message }, { status: 500 });
   }
 }
