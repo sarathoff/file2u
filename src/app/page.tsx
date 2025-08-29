@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent, ChangeEvent, DragEvent } from 'react';
+import { upload } from '@vercel/blob/client'; // Import the upload function
 import { cn } from '@/lib/utils';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +16,7 @@ export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [sendResult, setSendResult] = useState<{ shareCode: string; driveLink: string } | null>(null);
+  const [sendResult, setSendResult] = useState<{ shareCode: string; fileUrl: string } | null>(null); // Changed to fileUrl
   const [code, setCode] = useState('');
   const [isReceiving, setIsReceiving] = useState(false);
   const [receiveError, setReceiveError] = useState<string | null>(null);
@@ -57,12 +58,25 @@ export default function HomePage() {
     setSendResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const response = await fetch('/api/upload', { method: 'POST', body: formData });
+      // Step 1: Upload the file directly to Vercel Blob from the client.
+      const newBlob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/vercel-blob-upload',
+      });
+
+      // Step 2: Send the new file's URL to our server to save it and get a code.
+      const response = await fetch('/api/save-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: newBlob.url }),
+      });
+      
       const data = await response.json();
-      if (!response.ok) throw new Error(data.details || 'Something went wrong.');
+      if (!response.ok) throw new Error('Failed to save the file URL.');
+
+      // Step 3: Show the result to the user.
       setSendResult(data);
+
     } catch (err: any) {
       setSendError(err.message);
     } finally {
@@ -72,8 +86,8 @@ export default function HomePage() {
 
   const handleReceiveSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!code || code.length < 3) {
-      setReceiveError('Please enter a valid 3-digit code.');
+    if (!code || code.length < 5) { // Updated to 5-digit code
+      setReceiveError('Please enter a valid 5-digit code.');
       return;
     }
     setIsReceiving(true);
@@ -179,7 +193,7 @@ export default function HomePage() {
                 Back
               </Button>
               <CardTitle className="text-center text-2xl font-semibold text-gray-900 pt-8">Receive File</CardTitle>
-              <CardDescription className="text-center text-gray-500">Enter the 3-digit code to download.</CardDescription>
+              <CardDescription className="text-center text-gray-500">Enter the 5-digit code to download.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {receiveResult ? (
@@ -204,13 +218,13 @@ export default function HomePage() {
                   <Input
                     type="text"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
-                    placeholder="123"
-                    maxLength={3}
+                    onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 5))}
+                    placeholder="12345"
+                    maxLength={5}
                     className="text-center text-4xl tracking-[1em] font-semibold h-20"
                     disabled={isReceiving}
                   />
-                  <Button type="submit" className="w-full" disabled={isReceiving || code.length < 3}>
+                  <Button type="submit" className="w-full" disabled={isReceiving || code.length !== 5}>
                     {isReceiving && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
                     {isReceiving ? 'Searching...' : 'Get File'}
                   </Button>
